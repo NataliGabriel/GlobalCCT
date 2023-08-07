@@ -1,4 +1,5 @@
-﻿using GLB.CCT.EntidadeXML.ConsultaCCT;
+﻿using GLB.CCT.Entidade;
+using GLB.CCT.EntidadeXML.ConsultaCCT;
 using GLB.CCT.EntidadeXML.EnvioCCT;
 using GLB.CCT.Persistencia;
 using System;
@@ -33,10 +34,11 @@ namespace GLB.CCT.Negocio.Requisicao
             try
             {
                 var autenticar = await comunicacao.Autenticar(_tipoPerfil);
+
                 if (autenticar != null)
                 {
                     string enderecoXFZB = $"{URLPadraoValidacao}{URLEnvioHouseXFZB}?cnpj={consultas.BuscaCNPJ(nReferencia).Replace(".", "").Replace("/", "").Replace("-", "")}";
-
+                    Console.WriteLine($"{URLPadraoValidacao}{URLEnvioHouseXFZB}?cnpj=****************");
                     XmlSerializer xmlSerializer = new XmlSerializer(xml.GetType());
 
                     string xmlString = "";
@@ -48,27 +50,25 @@ namespace GLB.CCT.Negocio.Requisicao
                             xmlString = sww.ToString().FormataXML();
                         }
                     }
+                    //string xmlContent = File.ReadAllText("C:\\Users\\user\\Desktop\\CCT3\\GlobalCCT\\teste.xml");
 
+                    //string xmlSt = LoadXmlToString(xmlContent);
                     var doc = XDocument.Parse(xmlString.FormataCaratere());
                     doc.Declaration = null;
                     var xmlA = XDocument.Parse(xmlString);
                     var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlString.FormataCaratere());
                     var document = GeraCabecalhoXFZB();
-                    var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace(",", " ").Replace("<TransportContractDocument />", "").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseWaybill", "ns2:HouseWaybill").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").FormataCaratere());
+                    var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace("<TransportContractDocument />", "").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseWaybill", "ns2:HouseWaybill").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").FormataCaratere());
                     var xmlD = XDocument.Parse(JeitinhoBrasileiro);
-                    //string xmlContent = File.ReadAllText("C:\\Users\\user\\Desktop\\CCT3\\GlobalCCT\\teste.xml");
 
-                    //string xmlSt = LoadXmlToString(xmlContent);
-                    var stringContent = new StringContent(JeitinhoBrasileiro/*xmlContent*/, Encoding.UTF8, "application/xml");
-
+                    var stringContent = new StringContent(/*xmlSt*/JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
                     //var xmlD = XDocument.Parse(a);
-
+                    Console.WriteLine(xmlD);
                     HttpResponseMessage response = await client.PostAsync(enderecoXFZB, stringContent);
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
                     // Lê a resposta HTTP
                     if (response.IsSuccessStatusCode)
                     {
-                        var responseContent = response.Content.ReadAsStringAsync().Result;
-                        
                         var xmlResponse = XDocument.Parse(responseContent);
 
                         Console.WriteLine(xmlResponse.ToString());
@@ -84,6 +84,7 @@ namespace GLB.CCT.Negocio.Requisicao
                     else
                     {
                         Console.WriteLine(DateTime.Now + "> Falha na requisição ENVIO XFZB: " + response.StatusCode);
+                        Console.WriteLine(responseContent);
                         Console.WriteLine("Aperte qualquer botão para sair da tela");
                         Console.ReadLine();
                         return false;
@@ -118,7 +119,7 @@ namespace GLB.CCT.Negocio.Requisicao
 
                 var doc = XDocument.Parse(xmlString.Replace("Ã", "A"));
                 doc.Declaration = null;
-                var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlString.Replace("Ã", "A") );
+                var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlString.Replace("Ã", "A"));
                 var document = GeraHeaderXFHL();
                 var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A"));
                 //var xmlD = XDocument.Parse(JeitinhoBrasileiro);

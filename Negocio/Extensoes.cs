@@ -69,7 +69,7 @@ namespace GLB.CCT.Negocio
         }
         public static string FormataCaratere(this string str)
         {
-            return str.Replace("Ã", "A").Replace("Õ", "O").Replace("Ê", "E").Replace("Â", "A").Replace("Î", "I").Replace("Ô", "O").Replace("Û", "").Replace("Á", "A").Replace("É", "E").Replace("Í", "I").Replace("Ó", "O").Replace("Ú", "U").Replace("Ç", "C").Replace("À", "A").Replace("È", "E").Replace("Ì", "I").Replace("Ò", "O").Replace("Ù", "U");
+            return str.Replace("Ã", "A").Replace("Õ", "O").Replace("Ê", "E").Replace("Â", "A").Replace("Î", "I").Replace("Ô", "O").Replace("Û", "").Replace("Á", "A").Replace("É", "E").Replace("Í", "I").Replace("Ó", "O").Replace("Ú", "U").Replace("Ç", "C").Replace("À", "A").Replace("È", "E").Replace("Ì", "I").Replace("Ò", "O").Replace("Ù", "U").Replace(" "," ");
         }
     }
 }

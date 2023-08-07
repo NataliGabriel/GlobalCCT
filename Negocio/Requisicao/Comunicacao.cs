@@ -101,6 +101,7 @@ namespace GLB.CCT.Negocio.Requisicao
         }
         public async Task<HttpClient> RetornarClientDeEnvio(RetornoAutenticar arquivoAutenticado, string xml)
         {
+            var xml2 = XDocument.Parse(xml);
             HttpClient client = new HttpClient();
 
             client.BaseAddress = new Uri(URLPadraoValidacao);
@@ -123,7 +124,7 @@ namespace GLB.CCT.Negocio.Requisicao
             client.DefaultRequestHeaders.Add("X-CSRF-Token", arquivoAutenticado.CSRFToken);
             //client.DefaultRequestHeaders.Add("body", xml);
 
-            HttpResponseMessage a = await client.GetAsync("https://val.portalunico.siscomex.gov.br/ccta/api/ext/check/received-files/" + protocolo);
+            HttpResponseMessage a = await client.GetAsync("https://portalunico.siscomex.gov.br/ccta/api/ext/check/received-files/" + protocolo);
             var responseContent = a.Content.ReadAsStringAsync().Result;
             var xmlResponse = JObject.Parse(responseContent);
             return xmlResponse.ToString();
