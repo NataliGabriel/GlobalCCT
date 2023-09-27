@@ -12,7 +12,7 @@ namespace GLB.CCT.EntidadeXML.EnvioCCT
     {
         public MessageHeaderDocument()
         {
-            
+
         }
         public MessageHeaderDocument(string id, string name, string typeCode, string purposeCode)
         {

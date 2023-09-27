@@ -35,6 +35,8 @@ namespace GLB.CCT.Negocio
                         return await IntegrarEnvioHouse();
                     case TipoEnvioCCT.EnviarHouseXFHL:
                         return await IntegrarEnvioHouse();
+                    case TipoEnvioCCT.EnviarMaster:
+                        return await IntegrarEnvioHouse();
                     default:
                         break;
                 }
@@ -51,7 +53,7 @@ namespace GLB.CCT.Negocio
             switch (_tipoProcesso)
             {
                 case TipoProcessoEnum.ImportacaoAerea:
-                    return await  EnvioHouseImportacaoAerea();
+                    return await EnvioHouseImportacaoAerea();
                 default:
                     break;
             }
@@ -61,23 +63,33 @@ namespace GLB.CCT.Negocio
         {
             BLImportacaoAerea bLImportacao = new BLImportacaoAerea();
             var entidadeImportacaoAerea = await bLImportacao.BuscarProcessoPorReferencia(_nReferencia);
-            switch (_tipoEnvio)
+            var verificaModel = await bLImportacao.VerificaDados(entidadeImportacaoAerea);
+            if (verificaModel == "")
             {
-                case TipoEnvioCCT.EnviarHouseXFZB:
-                    var xmlXFZB = await bLImportacao.ConverterEntidadeEmXFZB(entidadeImportacaoAerea);
-                    EnvioHouse envioXFZB = new EnvioHouse(_tipoPefil);
-                    await envioXFZB.EnviarXFZB(xmlXFZB, _nReferencia);
-                    return true;
-                    break;
-                case TipoEnvioCCT.EnviarHouseXFHL:
-                    var xmlXFHL = await bLImportacao.ConverterEntidadeEmXFHL(entidadeImportacaoAerea);
-                    EnvioHouse envioXFHL = new EnvioHouse(_tipoPefil);
-                    return await envioXFHL.EnviarXFHL(xmlXFHL, _nReferencia);
-
-                default:
-                    return false;
+                switch (_tipoEnvio)
+                {
+                    case TipoEnvioCCT.EnviarHouseXFZB:
+                        var xmlXFZB = await bLImportacao.ConverterEntidadeEmXFZB(entidadeImportacaoAerea);
+                        EnvioHouse envioXFZB = new EnvioHouse(_tipoPefil);
+                        await envioXFZB.EnviarXFZB(xmlXFZB, _nReferencia);
+                        return true;
+                    case TipoEnvioCCT.EnviarHouseXFHL:
+                        var xmlXFHL = await bLImportacao.ConverterEntidadeEmXFHL(entidadeImportacaoAerea);
+                        EnvioHouse envioXFHL = new EnvioHouse(_tipoPefil);
+                        return await envioXFHL.EnviarXFHL(xmlXFHL, _nReferencia);
+                    case TipoEnvioCCT.EnviarMaster:
+                        var xmlMASTER = await bLImportacao.ConverterEntidadeEmXFHL(entidadeImportacaoAerea, 1);
+                        EnvioHouse envioMASTER = new EnvioHouse(_tipoPefil);
+                        return await envioMASTER.EnviarXFHL(xmlMASTER, _nReferencia);
+                    default:
+                        return false;
+                }
+            }
+            else
+            {
+                MessageBox.Show(verificaModel, "ERRO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
         }
     }
-}
- 
+} 

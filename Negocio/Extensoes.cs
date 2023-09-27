@@ -71,5 +71,51 @@ namespace GLB.CCT.Negocio
         {
             return str.Replace("Ã", "A").Replace("Õ", "O").Replace("Ê", "E").Replace("Â", "A").Replace("Î", "I").Replace("Ô", "O").Replace("Û", "").Replace("Á", "A").Replace("É", "E").Replace("Í", "I").Replace("Ó", "O").Replace("Ú", "U").Replace("Ç", "C").Replace("À", "A").Replace("È", "E").Replace("Ì", "I").Replace("Ò", "O").Replace("Ù", "U").Replace(" "," ");
         }
+        public static string ConvertName(this string str)
+        {
+            switch (str)
+            {
+                case "NOME_CONSIGNEE":
+                    return "Nome Importador";
+                case "CEP_CONSIGNEE":
+                    return "CEP Importador";
+                case "CIDADE_CONSIGNEE":
+                    return "Cidade Importador";
+                case "END_CONSIGNEE":
+                    return "Endereço Importador";
+                case "CEP_AGENTE_EMBARCADOR":
+                    return "CEP Ag. Embarcador";
+                case "CIDADE_AG_EMBARCADOR":
+                    return "Cidade Ag. Embarcador";
+                case "PAIS_EMBARCADOR":
+                    return "País Ag. Embarcador";
+                case "END_AG_EMBARCADOR":
+                    return "Endereço Ag. Embarcador";
+                case "NOME_SUB_AGENTE":
+                    return "Nome Sub Agente";
+                case "COD_ORIGEM":
+                    return "Origem";
+                case "COD_DESTINO":
+                    return "Destino";
+                case "NOME_AG_EXPORTADOR":
+                    return "Nome Exportador";
+                case "CEP_AGENTE_EXPORTADOR":
+                    return "CEP Exportador";
+                case "CIDADE_AG_EXPORTADOR":
+                    return "Cidade Exportador";
+                case "END_AG_EXPORTADOR":
+                    return "Endereço Exportador";
+                case "PAIS_AG_EXPORTADOR":
+                    return "Sigla DUE";
+                case "QTD_VOLUMES":
+                    return "Volume";
+                case "PESO_BRUTO":
+                    return "Peso Bruto";
+                case "MOEDA_FRETE":
+                    return "Moeda";
+
+            }
+            return "";
+        }
     }
 }

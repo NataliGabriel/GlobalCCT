@@ -23,7 +23,8 @@ namespace GLB.CCT.Negocio
         public enum TipoEnvioCCT
         {
             EnviarHouseXFZB = 1,
-            EnviarHouseXFHL = 2
+            EnviarHouseXFHL = 2,
+            EnviarMaster = 3
         }
     }
 }

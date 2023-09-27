@@ -61,9 +61,9 @@ namespace GLB.CCT.Negocio.Requisicao
                     var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace("<TransportContractDocument />", "").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseWaybill", "ns2:HouseWaybill").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").FormataCaratere());
                     var xmlD = XDocument.Parse(JeitinhoBrasileiro);
 
-                    var stringContent = new StringContent(/*xmlSt*/JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
+                    var stringContent = new StringContent(JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
                     //var xmlD = XDocument.Parse(a);
-                    Console.WriteLine(xmlD);
+                    //Console.WriteLine(xmlD);
                     HttpResponseMessage response = await client.PostAsync(enderecoXFZB, stringContent);
                     var responseContent = response.Content.ReadAsStringAsync().Result;
                     // Lê a resposta HTTP
@@ -76,7 +76,11 @@ namespace GLB.CCT.Negocio.Requisicao
                         var result = comunicacao.RetornaResultado(autenticar, protocolo[1].Replace("</", "").Replace(">", ""));
 
                         Console.WriteLine(result.Result);
+                        //string tempFilePath = Path.Combine(Path.GetTempPath(), "response.txt");
+                        //File.WriteAllText(tempFilePath, JeitinhoBrasileiro);
 
+                        // Abrir o Bloco de Notas com o arquivo temporário
+                        //System.Diagnostics.Process.Start("notepad.exe", tempFilePath);
                         Console.WriteLine("Aperte qualquer botão para sair da tela");
                         Console.ReadLine();
                         return true;
@@ -85,6 +89,12 @@ namespace GLB.CCT.Negocio.Requisicao
                     {
                         Console.WriteLine(DateTime.Now + "> Falha na requisição ENVIO XFZB: " + response.StatusCode);
                         Console.WriteLine(responseContent);
+                        // Criar um arquivo temporário com o texto
+                        //string tempFilePath = Path.Combine(Path.GetTempPath(), "responsexfzb.txt");
+                        //File.WriteAllText(tempFilePath, JeitinhoBrasileiro);
+
+                        // Abrir o Bloco de Notas com o arquivo temporário
+                        //System.Diagnostics.Process.Start("notepad.exe", tempFilePath);
                         Console.WriteLine("Aperte qualquer botão para sair da tela");
                         Console.ReadLine();
                         return false;
@@ -92,7 +102,14 @@ namespace GLB.CCT.Negocio.Requisicao
 
                 }
             }
-            catch (Exception ex) { Console.WriteLine(ex.Message); }
+            catch (Exception ex)
+            {
+                if(ex.Message == "Request headers must contain only ASCII character.")
+                {
+                    MessageBox.Show("Favor verificar todos os campos dos cadastros do Importador e Exportador e/ou descrição, referente a caractere especial.", "ERRO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                Console.WriteLine(ex.Message);
+            }
             return false;
         }
 
@@ -116,30 +133,48 @@ namespace GLB.CCT.Negocio.Requisicao
                         xmlString = sww.ToString().FormataXML();
                     }
                 }
+                //string xmlContent = File.ReadAllText("C:\\Users\\user\\Desktop\\CCT3\\GlobalCCT\\teste  .xml");
 
-                var doc = XDocument.Parse(xmlString.Replace("Ã", "A"));
+                //string xmlSt = LoadXmlToString(xmlContent);
+
+                XNamespace ns2 = "iata:housemanifest:1";
+
+                XElement root = XElement.Parse(xmlString);
+
+                var includedHouseConsignments = root.Descendants(ns2 + "IncludedHouseConsignment").Elements(ns2 + "IncludedHouseConsignment").ToList();
+
+                foreach (var includedHouseConsignment in includedHouseConsignments)
+                {
+                    includedHouseConsignment.ReplaceWith(includedHouseConsignment.Elements());
+                }
+
+                var doc = XDocument.Parse(xmlString.FormataCaratere());
                 doc.Declaration = null;
                 var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlString.Replace("Ã", "A"));
                 var document = GeraHeaderXFHL();
                 var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A"));
-                //var xmlD = XDocument.Parse(JeitinhoBrasileiro);
+                var xmlD = XDocument.Parse(JeitinhoBrasileiro);
 
                 var stringContent = new StringContent(JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
-
+                //Console.WriteLine(xmlD);
                 //var xmlD = XDocument.Parse(a);
 
                 HttpResponseMessage response = await client.PostAsync(enderecoXFZB, stringContent);
+                var responseContent = response.Content.ReadAsStringAsync().Result;
                 // Lê a resposta HTTP
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseContent = response.Content.ReadAsStringAsync().Result;
                     var xmlResponse = XDocument.Parse(responseContent);
 
                     string[] protocolo = responseContent.Split("Reason");
                     var result = comunicacao.RetornaResultado(autenticar, protocolo[1].Replace("</", "").Replace(">", ""));
 
                     Console.WriteLine(result.Result);
+                    //string tempFilePath = Path.Combine(Path.GetTempPath(), "responseXFHL.txt");
+                    //File.WriteAllText(tempFilePath, JeitinhoBrasileiro);
 
+                    //// Abrir o Bloco de Notas com o arquivo temporário
+                    //System.Diagnostics.Process.Start("notepad.exe", tempFilePath);
                     Console.WriteLine("Aperte qualquer botão para sair da tela");
                     Console.ReadLine();
                     return true;
@@ -147,6 +182,11 @@ namespace GLB.CCT.Negocio.Requisicao
                 else
                 {
                     Console.WriteLine(DateTime.Now + "> Falha na requisição ENVIO XFZB: " + response.StatusCode);
+                    //string tempFilePath = Path.Combine(Path.GetTempPath(), "response.txt");
+                    //File.WriteAllText(tempFilePath, JeitinhoBrasileiro);
+                    Console.WriteLine(responseContent);
+                    // Abrir o Bloco de Notas com o arquivo temporário
+                    //System.Diagnostics.Process.Start("notepad.exe", tempFilePath);
                     Console.WriteLine("Aperte qualquer botão para sair da tela");
                     Console.ReadLine();
                     return false;
@@ -154,6 +194,13 @@ namespace GLB.CCT.Negocio.Requisicao
 
             }
             return false;
+        }
+        static XmlNamespaceManager GetXmlNamespaceManager(XmlDocument xmlDoc)
+        {
+            XmlNamespaceManager nsManager = new XmlNamespaceManager(xmlDoc.NameTable);
+            nsManager.AddNamespace("ns2", "iata:housemanifest:1");
+            nsManager.AddNamespace("iata", "iata:datamodel:3");
+            return nsManager;
         }
         static string LoadXmlToString(string xmlContent)
         {

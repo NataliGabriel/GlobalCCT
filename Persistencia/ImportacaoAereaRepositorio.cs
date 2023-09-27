@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using System.Data.SqlClient;
+using System.Diagnostics.Metrics;
 
 namespace GLB.CCT.Persistencia
 {
@@ -17,7 +18,7 @@ namespace GLB.CCT.Persistencia
             ConexaoBanco conexaoBanco = new ConexaoBanco();
             conexao = conexaoBanco.sqlConnection();
         }
-        public async Task Atualizar (ImportacaoAereaEntidade entidade)
+        public async Task Atualizar(ImportacaoAereaEntidade entidade)
         {
             StringBuilder sqlUpdate = new StringBuilder();
             sqlUpdate.Append("UPDATE TBL_SISTEMA SET ");
@@ -26,7 +27,7 @@ namespace GLB.CCT.Persistencia
             sqlUpdate.Append("WHERE N_REFERENCIA = @N_REFERENCIA");
             await conexao.ExecuteAsync(sqlUpdate.ToString(), entidade);
         }
-        public async Task<ImportacaoAereaEntidade> Consultar (string nReferencia)
+        public async Task<ImportacaoAereaEntidade> Consultar(string nReferencia)
         {
             Console.WriteLine(DateTime.Now + "> Buscando Referência...");
             try
@@ -109,14 +110,15 @@ namespace GLB.CCT.Persistencia
                 //conexao.Open();
                 return conexao.QueryFirst<ImportacaoAereaEntidade>(sSql);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                MessageBox.Show("Favor verificar se o IP está correto. Caso tenha dúvidas, entre em contato com a Global Solution", "ERRO!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Console.ReadKey();
                 return null;
             }
         }
-         
+
 
         public string BuscaCNPJ(string nReferencia)
         {
@@ -193,10 +195,10 @@ namespace GLB.CCT.Persistencia
                 return null;
             }
         }
-        public bool InserirCCT (string nReferencia, string values)
+        public bool InserirCCT(string nReferencia, string values)
         {
             string sSql = @$"INSERT INTO
-                                    V_BROKER
+                                    TBL_SISTEMA
                                         (
                                            CODIGO_RECINTO,
                                            SETOR,
@@ -206,14 +208,81 @@ namespace GLB.CCT.Persistencia
                                            DATA_EMB,
                                            NR_TERMO,
                                            NR_VEICULO_TRANSP,
-                                           QTD_ITENS,
-                                           PESO_BRUTO
+                                           QTD_VOLUMES,
+                                           PESO_BRUTO,
+                                           RUC
                                         )
-                                    VALUES
-                                        (
-                                           {values}
-                                        )";
-            return true;
+                                        SELECT
+                                            {values}
+                            FROM
+                                TBL_SISTEMA
+                            WHERE
+                                NR_IDENTIFICACAO = '{nReferencia}'
+                                        ";
+            try
+            {
+                using (SqlCommand command = new SqlCommand(sSql, conexao))
+                {
+                    int i = command.ExecuteNonQuery();
+                    if (i == 1)
+                        return true;
+                    else
+                        return false;
+                }
+
+            }
+            catch (Exception ex) { Console.WriteLine(ex.Message); return false; }
         }
+        public bool AtualizaCCT(string nReferencia, string setValue)
+        {
+            try
+            {
+                string sSql = @$"
+                                UPDATE
+                                    TBL_SISTEMA
+                                        SET
+                                            {setValue}
+                                        WHERE
+                                            NR_IDENTIFICACAO = '{nReferencia}'";
+                using (SqlCommand command = new SqlCommand(sSql, conexao))
+                {
+                    int i = command.ExecuteNonQuery();
+                    if (i == 1)
+                        return true;
+                    else
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return false;
+            }
+        }
+        public nMaster QntdHouses(string nMaster_, string dtPrev)
+        {
+            string sQuery = @$"SELECT NR_HOUSE FROM V_IA WHERE NR_MASTER ='{nMaster_}' and not NR_HOUSE is null ";
+            conexao.Open();
+            nMaster master = new nMaster();
+            using (SqlCommand command = new SqlCommand(sQuery, conexao))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string houseName = reader["NR_HOUSE"].ToString();
+                        master.NR_HOUSE.Add(houseName);
+                    }
+                }
+            }
+            return master;
+        }
+
+        public ImportacaoAereaEntidade RDL(string nProcesso)
+        {
+            string sQuery = $"SELECT PESO_BRUTO, QTD_VOLUMES, DESC_MERC, NR_HOUSE, SIGLA_ORIGEM, SIGLA_DESTINO FROM V_IA WHERE NR_HOUSE ='{nProcesso}'";
+            return conexao.QueryFirst<ImportacaoAereaEntidade?>(sQuery.ToString());
+        }
+
     }
 }

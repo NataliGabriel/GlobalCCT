@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace GLB.CCT.EntidadeXML.EnvioCCT
 {
@@ -14,7 +15,8 @@ namespace GLB.CCT.EntidadeXML.EnvioCCT
         public TransportContractDocumentXML TransportContractDocument { get; set; } = new TransportContractDocumentXML();
         public OriginLocationXML OriginLocation { get; set; } = new OriginLocationXML();
         public OriginLocationXML FinalDestinationLocation { get; set; } = new OriginLocationXML();
-        public IncludedHouseConsignment IncludedHouseConsignment { get; set; } = new IncludedHouseConsignment();
+        [XmlElement(ElementName = "IncludedHouseConsignment")]
+        public List<IncludedHouseConsignment> IncludedHouseConsignment { get; set; } = new List<IncludedHouseConsignment>();
     }
     public class MasterConsignmentXML
     {

@@ -2,6 +2,7 @@
 using GLB.CCT.Negocio;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,20 @@ namespace GLB.CCT.Entidade
         public DateTime? DATA_CHEGADA { get; set; }
         public DateTime? DATA_PREV_EMBARQUE { get; set; }
         public DateTime? DT_EMISSAO_HOUSE { get; set; }
+        public string DT_EMISSAO_HOUSE_FORMAT
+        {
+            get
+            {
+                if (DT_EMISSAO_HOUSE.HasValue)
+                {
+                    return DT_EMISSAO_HOUSE.Value.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
         public string DESC_MERC { get; set; }
         public double? PESO_BRUTO { get; set; }
         public double? QTD_VOLUMES { get; set; }
@@ -97,5 +112,14 @@ namespace GLB.CCT.Entidade
             }
         }
 
+    }
+
+    public class nMaster
+    {
+        public List<string> NR_HOUSE { get; set; }
+        public nMaster()
+        {
+            NR_HOUSE = new List<string>();
+        }
     }
 }

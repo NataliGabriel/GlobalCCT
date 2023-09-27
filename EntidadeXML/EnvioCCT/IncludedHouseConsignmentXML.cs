@@ -7,9 +7,22 @@ using System.Xml.Serialization;
 
 namespace GLB.CCT.EntidadeXML.EnvioCCT
 {
+    //[XmlRoot("IncludedCustoms")]
+    //public class IncludedCustomsNoteXML
+    //{
+    //    public IncludedCustomsNoteXML()
+    //    {
+
+    //    }
+    //    public string ContentCode { get; set; }
+    //    public string Content { get; set; }
+    //    public string SubjectCode { get; set; }
+    //    public string CountryID { get; set; }
+    //}
+    [XmlRoot(ElementName = "IncludedHouseConsignment")]
     public class IncludedHouseConsignment
     {
-        public IncludedHouseConsignment() { }
+        //public IncludedHouseConsignment() { }
         public string SequenceNumeric { get; set; }
         public GrossWeightMeasureMXL GrossWeightMeasure { get; set; } = new GrossWeightMeasureMXL();
         public string TotalPieceQuantity { get; set; }

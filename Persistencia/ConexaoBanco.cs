@@ -19,7 +19,8 @@ namespace GLB.CCT.Persistencia
             else
                 SenhaGlobal = "S0lut@3e4r";
 
-            return new SqlConnection("Data Source=" + ipGlobal + ";Initial Catalog=SISTEMA_GLOBAL;Persist Security Info=True;User ID=global;Password=" + SenhaGlobal + ";MultipleActiveResultSets=True;Connection Timeout=5");
+            return new SqlConnection("Data Source=" + ipGlobal + ";Initial Catalog=SISTEMA_GLOBAL;Persist Security Info=True;User ID=sa;Password=" + SenhaGlobal + ";MultipleActiveResultSets=True;Connection Timeout=5");
+
 
         }
     }

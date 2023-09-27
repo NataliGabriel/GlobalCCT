@@ -5,9 +5,11 @@ using GLB.CCT.Persistencia;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using static GLB.CCT.Negocio.EnumSistema;
 
 namespace GLB.CCT.Negocio
 {
@@ -15,6 +17,7 @@ namespace GLB.CCT.Negocio
     {
         private BLCadastros _blCadastros;
         private ImportacaoAereaRepositorio _repositorio;
+        private TipoEnvioCCT _tipoEnvio;
         public BLImportacaoAerea()
         {
             _blCadastros = new BLCadastros();
@@ -66,7 +69,7 @@ namespace GLB.CCT.Negocio
             {
                 Console.WriteLine(DateTime.Now + "> Convertendo Valores...");
                 Console.WriteLine(entidade.NR_HOUSE + " - " + entidade.NR_MASTER);
-                if (entidade.NR_HOUSE != null && entidade.NR_MASTER != null)
+                if (entidade.NR_HOUSE != null && entidade.NR_MASTER != null || entidade.NR_HOUSE.Length > 11)
                 {
                     HouseWaybill arquivoHouse = new HouseWaybill($"{entidade.NR_HOUSE.Replace("-", "").Replace(" ", "")}_{entidade.NR_MASTER.Remove(8, 1)}", "House Waybill", "703", "Creation");
                     arquivoHouse.MessageHeaderDocument.senderParties = new List<SenderParty>
@@ -84,14 +87,14 @@ namespace GLB.CCT.Negocio
                     arquivoHouse.BusinessHeaderDocument.SignatoryConsignorAuthentication.Signatory = entidade.NOME_SUB_AGENTE;
                     arquivoHouse.BusinessHeaderDocument.SignatoryCarrierAuthentication.Signatory = entidade.NOME_SUB_AGENTE;
                     arquivoHouse.BusinessHeaderDocument.SignatoryCarrierAuthentication.IssueAuthenticationLocation.Name = entidade.SIGLA_ORIGEM;
-                    arquivoHouse.BusinessHeaderDocument.SignatoryCarrierAuthentication.ActualDateTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz");
+                    arquivoHouse.BusinessHeaderDocument.SignatoryCarrierAuthentication.ActualDateTime = entidade.DT_EMISSAO_HOUSE_FORMAT ;
                     arquivoHouse.MasterConsignment.IncludedTareGrossWeightMeasure.IncludedTareGrossWeightMeasure = entidade.PESO_BRUTO.FormatarNumeroParaXML();
                     arquivoHouse.MasterConsignment.TotalPieceQuantity = entidade.QTD_VOLUMES.ToString().Replace(",", ".");
                     arquivoHouse.MasterConsignment.TransportContractDocument.ID = entidade.NR_MASTER.Remove(8, 1);
                     arquivoHouse.MasterConsignment.OriginLocation.ID = entidade.SIGLA_ORIGEM.ConverterNuloParaBranco();
                     arquivoHouse.MasterConsignment.FinalDestinationLocation.ID = entidade.SIGLA_DESTINO.ConverterNuloParaBranco();
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.ID = entidade.NR_HOUSE.ConverterNuloParaBranco().Replace("-", "").Replace(" ", "");
-                    if(entidade.TIPO_FRETE_HOUSE == 2)
+                    if (entidade.TIPO_FRETE_HOUSE == 2)
                     {
                         arquivoHouse.MasterConsignment.IncludedHouseConsignment.NilCarriageValueIndicator = true;
                         arquivoHouse.MasterConsignment.IncludedHouseConsignment.NilCustomsValueIndicator = true;
@@ -114,7 +117,7 @@ namespace GLB.CCT.Negocio
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.IncludedTareGrossWeightMeasure.IncludedTareGrossWeightMeasure = entidade.PESO_BRUTO.FormatarNumeroParaXML();
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.PackageQuantity = "0";
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.TotalPieceQuantity = entidade.QTD_VOLUMES.ToString().Replace(",", ".");
-                    arquivoHouse.MasterConsignment.IncludedHouseConsignment.SummaryDescription = entidade.DESC_MERC.ConverterNuloParaBranco();
+                    arquivoHouse.MasterConsignment.IncludedHouseConsignment.SummaryDescription = entidade.DESC_MERC.ConverterNuloParaBranco().Replace("\r","").Replace("\n", "");
                     if (entidade.TIPO_FRETE_HOUSE == 2)
                     {
                         arquivoHouse.MasterConsignment.IncludedHouseConsignment.TotalDisbursementPrepaidIndicator = true;
@@ -146,7 +149,7 @@ namespace GLB.CCT.Negocio
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.OriginLocation.ID = entidade.SIGLA_ORIGEM.ConverterNuloParaBranco();
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.FinalDestinationLocation.ID = entidade.SIGLA_DESTINO.ConverterNuloParaBranco();
 
-                    arquivoHouse.MasterConsignment.IncludedHouseConsignment.IncludedCustomsNote.AddRange(ListaDeIncludedCustomsNote(entidade.CNPJ_CPF.ConverterNuloParaBranco().Replace("-", "").Replace("/","").Replace(".", ""), entidade));
+                    arquivoHouse.MasterConsignment.IncludedHouseConsignment.IncludedCustomsNote.AddRange(ListaDeIncludedCustomsNote(TestaNumerico(entidade.CNPJ_CPF.ConverterNuloParaBranco().Replace("-", "").Replace("/", "").Replace(".", "")), entidade.CNPJ_CPF.ConverterNuloParaBranco().Replace("-", "").Replace("/", "").Replace(".", ""), entidade));
 
                     arquivoHouse.MasterConsignment.IncludedHouseConsignment.IncludedHouseConsignmentItem = IncluirHouseItem(entidade);
 
@@ -155,7 +158,7 @@ namespace GLB.CCT.Negocio
                 }
                 else
                 {
-                    Console.WriteLine("Erro = House não pode ser nulo");
+                    Console.WriteLine("Erro = House não pode ser nulo e nem maior que 11 caracteres");
                     return null;
                 }
             }
@@ -165,17 +168,17 @@ namespace GLB.CCT.Negocio
                 return null;
             }
         }
-        public async Task<HouseManifest> ConverterEntidadeEmXFHL(ImportacaoAereaEntidade entidade)
+        public async Task<HouseManifest> ConverterEntidadeEmXFHL(ImportacaoAereaEntidade entidade, int I = 0)
         {
             try
             {
                 Console.WriteLine(DateTime.Now + "> Convertendo Valores...");
-                if (entidade.NR_HOUSE != null && entidade.NR_MASTER != null)
+                if (entidade.NR_HOUSE != null && entidade.NR_MASTER != null || entidade.NR_HOUSE.Length > 11)
                 {
-                    HouseManifest arquivoHouse = new HouseManifest($"{entidade.NR_HOUSE.Replace("-", "").Replace(" ", "")}_{entidade.NR_MASTER.Remove(8, 1)}", "Cargo Manifest", "785", "Creation");
+                    HouseManifest arquivoHouse = new HouseManifest($"{entidade.NR_HOUSE.Replace("-", "").Replace(" ", "")}_{entidade.NR_MASTER.Remove(8, 1)}", "Cargo Manifest", "785", "Update");
                     arquivoHouse.MessageHeaderDocument.senderParties = new List<SenderParty>
                 {
-                    //new SenderParty{PrimaryID = new SenderPrimaryIDXML{ PrimaryID = "RIEGESOFTWARE", schemeID = "C" } },
+                    new SenderParty{PrimaryID = new SenderPrimaryIDXML{ PrimaryID = "RIEGESOFTWARE", schemeID = "C" } },
                     new SenderParty{PrimaryID = new SenderPrimaryIDXML{ PrimaryID = "REUAGT88FORWARDER/FRA01", schemeID = "P" } }
                 };
                     arquivoHouse.MessageHeaderDocument.recipientParties = new List<RecipientParty>
@@ -190,14 +193,27 @@ namespace GLB.CCT.Negocio
                     arquivoHouse.MasterConsignment.OriginLocation.ID = entidade.SIGLA_ORIGEM.ConverterNuloParaBranco();
                     arquivoHouse.MasterConsignment.FinalDestinationLocation.ID = entidade.SIGLA_DESTINO.ConverterNuloParaBranco();
 
-                    arquivoHouse.MasterConsignment.IncludedHouseConsignment = IncluirHouseConsignment(entidade);
+                    if (I == 1)
+                    {
+                        var HAWB = _repositorio.QntdHouses(entidade.NR_MASTER, entidade.DATA_PREV_CHEGADA.ToString());
 
+                        for (int a = 0; a < HAWB.NR_HOUSE.Count; a++)
+                        {
+                            //var model = _repositorio.RDL(HAWB.NR_HOUSE[a]); 
+                            //arquivoHouse.MasterConsignment.IncludedHouseConsignment.SequenceNumeric = Convert.ToString(a + 1);
+                            arquivoHouse.MasterConsignment.IncludedHouseConsignment.AddRange(IncluirHouseConsignment(_repositorio.RDL(HAWB.NR_HOUSE[a]), a + 1));
+                        }
+                    }
+                    else
+                    {
+                        arquivoHouse.MasterConsignment.IncludedHouseConsignment = IncluirHouseConsignment(entidade);
+                    }
 
                     return arquivoHouse;
                 }
                 else
                 {
-                    Console.WriteLine("Erro = House não poder ser nulo");
+                    Console.WriteLine("Erro = House não poder ser nulo e nem maior que 11 caracteres");
                     return null;
                 }
             }
@@ -207,19 +223,22 @@ namespace GLB.CCT.Negocio
                 return null;
             }
         }
-        private IncludedHouseConsignment IncluirHouseConsignment(ImportacaoAereaEntidade entidade)
+        private List<IncludedHouseConsignment> IncluirHouseConsignment(ImportacaoAereaEntidade entidade, int Sequencia = 0)
         {
+            List<IncludedHouseConsignment> lista = new List<IncludedHouseConsignment>();
             IncludedHouseConsignment includedHouseConsignmentXML = new IncludedHouseConsignment
             {
-                SequenceNumeric = "1",
+                //entidade.ValorFretePreppaid.FormatarNumeroParaXML() == "" ? "0.00" : entidade.ValorFretePreppaid.FormatarNumeroParaXML();
+                SequenceNumeric = Sequencia == 0 ? "1" : Sequencia.ToString(),
                 GrossWeightMeasure = new GrossWeightMeasureMXL { GrossWeightMeasure = entidade.PESO_BRUTO.FormatarNumeroParaXML() },
                 TotalPieceQuantity = entidade.QTD_VOLUMES.ToString().Replace(",", "."),
-                SummaryDescription = entidade.DESC_MERC.ConverterNuloParaBranco(),
+                SummaryDescription = entidade.DESC_MERC.ConverterNuloParaBranco().Replace("\r", "").Replace("\n", ""),
                 TransportContractDocument = new TransportContractDocumentXML() { ID = entidade.NR_HOUSE.ConverterNuloParaBranco().Replace("-", "") },
                 OriginLocation = new OriginLocationXML() { ID = entidade.SIGLA_ORIGEM.ToString() },
                 FinalDestinationLocation = new OriginLocationXML() { ID = entidade.SIGLA_DESTINO.ToString() }
             };
-            return includedHouseConsignmentXML;
+            lista.Add(includedHouseConsignmentXML);
+            return lista;
         }
         private IncludedHouseConsignmentItemXML IncluirHouseItem(ImportacaoAereaEntidade entidade)
         {
@@ -235,15 +254,16 @@ namespace GLB.CCT.Negocio
             };
             return includedHouseConsignmentItemXML;
         }
-        private List<IncludedCustomsNoteXML> ListaDeIncludedCustomsNote(string cnpjConsignee, ImportacaoAereaEntidade entidade = null)
+        private List<IncludedCustomsNoteXML> ListaDeIncludedCustomsNote(string cnpjCPF, string cnpjConsignee, ImportacaoAereaEntidade entidade = null )
         {
+
             List<IncludedCustomsNoteXML> lista = new List<IncludedCustomsNoteXML>();
             IncludedCustomsNoteXML includeCNE = new IncludedCustomsNoteXML
             {
                 CountryID = "BR",
                 SubjectCode = "CNE",
                 ContentCode = "T",
-                Content = "CNPJ" + cnpjConsignee
+                Content = cnpjCPF + cnpjConsignee
             };
             IncludedCustomsNoteXML includeIMP = new IncludedCustomsNoteXML
             {
@@ -268,11 +288,11 @@ namespace GLB.CCT.Negocio
             };
             lista.Add(includeCNE);
             //lista.Add(includeIMP);
-            if(entidade.CODIGO_RECINTO != "" || entidade.CODIGO_RECINTO != null)
+            if (entidade.CODIGO_RECINTO != "" || entidade.CODIGO_RECINTO != null)
             {
                 lista.Add(includeCCL);
             }
-            
+
             //lista.Add(includeDI);
             return lista;
         }
@@ -288,6 +308,40 @@ namespace GLB.CCT.Negocio
                 return null;
             }
         }
+        public string TestaNumerico(string valor)
+        {
+            if (valor.Length == 14)
+            {
+                return "CNPJ";
+            }
+            else
+            {
+                return "CPF";
+            }
+        }
 
+        public async Task<string> VerificaDados(ImportacaoAereaEntidade model)
+        {
+            string[] variaveis = {
+                 /*IMPORTADOR*/         "NOME_CONSIGNEE", "CEP_CONSIGNEE", "CIDADE_CONSIGNEE", "END_CONSIGNEE", 
+                 /*Agente Embarcador*/  "CEP_AGENTE_EMBARCADOR", "CIDADE_AG_EMBARCADOR", "PAIS_EMBARCADOR", "END_AG_EMBARCADOR",
+                 /*Sub Agente*/         "NOME_SUB_AGENTE",
+                 /*Origem - Destino*/   "SIGLA_ORIGEM", "SIGLA_DESTINO",
+                 /* Exportador */       "NOME_AG_EXPORTADOR", "CEP_AGENTE_EXPORTADOR", "CIDADE_AG_EXPORTADOR", "END_AG_EXPORTADOR", "PAIS_AG_EXPORTADOR",
+                                        "QTD_VOLUMES", "PESO_BRUTO", "MOEDA_FRETE"
+                                 };
+            string retorno = "";
+            foreach(var variavel in variaveis)
+            {
+                PropertyInfo propertyInfo = model.GetType().GetProperty(variavel);
+                object valor = propertyInfo.GetValue(model);
+                if (valor == null || string.IsNullOrEmpty(variavel.ToString()))
+                {
+                    retorno += $"{variavel.ConvertName()} não pode ser nulo \r\n";
+                }
+            }
+
+            return retorno;
+        }
     }
 }
