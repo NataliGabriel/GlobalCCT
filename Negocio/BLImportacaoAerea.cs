@@ -193,21 +193,21 @@ namespace GLB.CCT.Negocio
                     arquivoHouse.MasterConsignment.OriginLocation.ID = entidade.SIGLA_ORIGEM.ConverterNuloParaBranco();
                     arquivoHouse.MasterConsignment.FinalDestinationLocation.ID = entidade.SIGLA_DESTINO.ConverterNuloParaBranco();
 
-                    if (I == 1)
-                    {
-                        var HAWB = _repositorio.QntdHouses(entidade.NR_MASTER, entidade.DATA_PREV_CHEGADA.ToString());
+                    //if (I == 1)
+                    //{
+                    //    var HAWB = _repositorio.QntdHouses(entidade.NR_MASTER, entidade.DATA_PREV_CHEGADA.ToString());
 
-                        for (int a = 0; a < HAWB.NR_HOUSE.Count; a++)
-                        {
-                            //var model = _repositorio.RDL(HAWB.NR_HOUSE[a]); 
-                            //arquivoHouse.MasterConsignment.IncludedHouseConsignment.SequenceNumeric = Convert.ToString(a + 1);
-                            arquivoHouse.MasterConsignment.IncludedHouseConsignment.AddRange(IncluirHouseConsignment(_repositorio.RDL(HAWB.NR_HOUSE[a]), a + 1));
-                        }
-                    }
-                    else
-                    {
-                        arquivoHouse.MasterConsignment.IncludedHouseConsignment = IncluirHouseConsignment(entidade);
-                    }
+                    //    for (int a = 0; a < HAWB.NR_HOUSE.Count; a++)
+                    //    {
+                    //        //var model = _repositorio.RDL(HAWB.NR_HOUSE[a]); 
+                    //        //arquivoHouse.MasterConsignment.IncludedHouseConsignment.SequenceNumeric = Convert.ToString(a + 1);
+                    //        arquivoHouse.MasterConsignment.IncludedHouseConsignment.AddRange(IncluirHouseConsignment(_repositorio.RDL(HAWB.NR_HOUSE[a]), a + 1));
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    arquivoHouse.MasterConsignment.IncludedHouseConsignment = IncluirHouseConsignment(entidade);
+                    //}
 
                     return arquivoHouse;
                 }
