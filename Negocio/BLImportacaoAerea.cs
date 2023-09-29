@@ -175,7 +175,7 @@ namespace GLB.CCT.Negocio
                 Console.WriteLine(DateTime.Now + "> Convertendo Valores...");
                 if (entidade.NR_HOUSE != null && entidade.NR_MASTER != null || entidade.NR_HOUSE.Length > 11)
                 {
-                    HouseManifest arquivoHouse = new HouseManifest($"{entidade.NR_HOUSE.Replace("-", "").Replace(" ", "")}_{entidade.NR_MASTER.Remove(8, 1)}", "Cargo Manifest", "785", "Update");
+                    HouseManifest arquivoHouse = new HouseManifest($"{entidade.NR_HOUSE.Replace("-", "").Replace(" ", "")}_{entidade.NR_MASTER.Remove(8, 1)}", "Cargo Manifest", "785", "Creation");
                     arquivoHouse.MessageHeaderDocument.senderParties = new List<SenderParty>
                 {
                     new SenderParty{PrimaryID = new SenderPrimaryIDXML{ PrimaryID = "RIEGESOFTWARE", schemeID = "C" } },

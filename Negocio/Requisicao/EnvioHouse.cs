@@ -133,9 +133,9 @@ namespace GLB.CCT.Negocio.Requisicao
                         xmlString = sww.ToString().FormataXML();
                     }
                 }
-                //string xmlContent = File.ReadAllText("C:\\Users\\user\\Desktop\\CCT3\\GlobalCCT\\teste  .xml");
+                string xmlContent = File.ReadAllText("C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\test.xml");
 
-                //string xmlSt = LoadXmlToString(xmlContent);
+                string xmlSt = LoadXmlToString(xmlContent);
 
                 XNamespace ns2 = "iata:housemanifest:1";
 
@@ -150,12 +150,12 @@ namespace GLB.CCT.Negocio.Requisicao
 
                 var doc = XDocument.Parse(xmlString.FormataCaratere());
                 doc.Declaration = null;
-                var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlString.Replace("Ã", "A"));
+                var client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlSt/*xmlString*/.Replace("Ã", "A"));
                 var document = GeraHeaderXFHL();
                 var JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A"));
                 var xmlD = XDocument.Parse(JeitinhoBrasileiro);
 
-                var stringContent = new StringContent(JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
+                var stringContent = new StringContent(xmlSt, Encoding.UTF8, "application/xml");
                 //Console.WriteLine(xmlD);
                 //var xmlD = XDocument.Parse(a);
 
@@ -170,11 +170,6 @@ namespace GLB.CCT.Negocio.Requisicao
                     var result = comunicacao.RetornaResultado(autenticar, protocolo[1].Replace("</", "").Replace(">", ""));
 
                     Console.WriteLine(result.Result);
-                    //string tempFilePath = Path.Combine(Path.GetTempPath(), "responseXFHL.txt");
-                    //File.WriteAllText(tempFilePath, JeitinhoBrasileiro);
-
-                    //// Abrir o Bloco de Notas com o arquivo temporário
-                    //System.Diagnostics.Process.Start("notepad.exe", tempFilePath);
                     Console.WriteLine("Aperte qualquer botão para sair da tela");
                     Console.ReadLine();
                     return true;
