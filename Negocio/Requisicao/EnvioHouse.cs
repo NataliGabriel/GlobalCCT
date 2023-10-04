@@ -104,9 +104,9 @@ namespace GLB.CCT.Negocio.Requisicao
                 xmlDocument.LoadXml(xmlString);
                 XmlNodeList itemNodes = xmlDocument.SelectNodes("//iata:IncludedHouseConsignment", GetNamespaceManager(xmlDocument));
                 if (itemNodes.Count > 12)
-                {
+                { 
                     List<XmlNode> primeiroIncludedHouse = ObterProximoIncludedHouse(itemNodes, 0, tamanhoMaximo);
-                    var primeiraIncludedHouse = GerarXML(primeiroIncludedHouse);
+                    var primeiraIncludedHouse = GerarXML(primeiroIncludedHouse, xmlDocument);
                     var doc = XDocument.Parse(primeiraIncludedHouse);
                     doc.Declaration = null;
                     var document = GeraHeaderXFHL();
@@ -122,7 +122,8 @@ namespace GLB.CCT.Negocio.Requisicao
                         while (indice < itemNodes.Count)
                         {
                             List<XmlNode> loteAtual = ObterProximoIncludedHouse(itemNodes, indice, tamanhoMaximo);
-                            GerarXML(loteAtual);
+                            GerarXML(loteAtual, xmlDocument);
+
 
                             doc = XDocument.Parse(primeiraIncludedHouse);
                             doc.Declaration = null;
@@ -150,24 +151,41 @@ namespace GLB.CCT.Negocio.Requisicao
             }
             return false;
         }
-        static string GerarXML(List<XmlNode> IncludedHouse)
+        public static string GerarXML(List<XmlNode> IncludedHouse, XmlDocument xml)
         {
-            XmlDocument xmlLote = new XmlDocument();
-
-            // Crie um novo elemento raiz para o XML do lote
-            XmlElement loteElement = xmlLote.CreateElement("Lote");
-
-            // Adicione os itens do lote como filhos do novo elemento raiz
-            foreach (var itemNode in IncludedHouse)
+            try
             {
-                XmlNode clonedNode = xmlLote.ImportNode(itemNode, true);
-                loteElement.AppendChild(clonedNode);
-            }
+                XmlDocument xmlLote = new XmlDocument();
 
-            // Adicione o elemento raiz ao documento do lote
-            xmlLote.AppendChild(loteElement);
+                XmlNode messageHeaderNode = xml.SelectSingleNode("//iata:MessageHeaderDocument", GetNamespaceManager(xml));
+                XmlNode businessHeaderNode = xml.SelectSingleNode("//iata:BusinessHeaderDocument", GetNamespaceManager(xml));
+                XmlNode MasterConsignmentNode = xml.SelectSingleNode("//iata:MasterConsignment", GetNamespaceManager(xml));
+                if (messageHeaderNode != null && businessHeaderNode != null)
+                {
+                    XmlElement loteElement = xmlLote.CreateElement("HouseManifest");
 
-            return xmlLote.InnerXml.FormataCaratere();
+                    // Adicione o conteúdo de MessageHeaderDocument ao elemento raiz do lote
+                    XmlNode clonedMessageHeaderNode = xmlLote.ImportNode(messageHeaderNode, true);
+                    loteElement.AppendChild(clonedMessageHeaderNode);
+
+                    // Adicione o conteúdo de BusinessHeaderDocument ao elemento raiz do lote
+                    XmlNode clonedBusinessHeaderNode = xmlLote.ImportNode(businessHeaderNode, true);
+                    loteElement.AppendChild(clonedBusinessHeaderNode);
+
+                    // Adicione os itens do lote como filhos do novo elemento raiz
+                    foreach (var itemNode in IncludedHouse)
+                    {
+                        XmlNode clonedNode = xmlLote.ImportNode(itemNode, true);
+                        loteElement.AppendChild(clonedNode);
+                    }
+
+                    // Adicione o elemento raiz ao documento do lote
+                    xmlLote.AppendChild(loteElement);
+
+                    return xmlLote.OuterXml;
+                }
+                return "";
+            }catch (Exception ex) { Console.WriteLine(ex.Message); return null; }
         }
         async Task<bool> PostAsyncCCT(HttpClient client, StringContent stringContent, RetornoAutenticar autenticar, string nReferencia)
         {
