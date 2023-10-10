@@ -132,8 +132,10 @@ namespace GLB.CCT.Persistencia
                     if (reader.HasRows)
                     {
                         reader.Read();
-
-                        return reader.GetString(reader.GetOrdinal("CNPJ_CPF"));
+                        
+                        var retorno = reader.GetString(reader.GetOrdinal("CNPJ_CPF"));
+                        conexao.CloseAsync();
+                        return retorno;
                     }
                     else
                     {

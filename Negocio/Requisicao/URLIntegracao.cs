@@ -10,7 +10,7 @@ namespace GLB.CCT.Negocio.Requisicao
     public static class URLIntegracao
     {
 
-        public static string URLPadraoValidacao = @"https://val.portalunico.siscomex.gov.br/ccta/api/";
+        public static string URLPadraoValidacao = @"https://portalunico.siscomex.gov.br/ccta/api/";
         public static string URLCCT = @"ext/check/received-files/{0}";
         public static string URLConsultaConhecimentoCarga = @"ext/conhecimentos";
         public static string URLAutenticar = @"/portal/api/autenticar";

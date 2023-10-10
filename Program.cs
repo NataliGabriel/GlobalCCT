@@ -26,11 +26,11 @@ class Program
             switch (arquivo[1])
             {
                 case "0":
-                    BLRealizarIntegracaoEnvio bLRealizarIntegracaoEnvioXFZB = new BLRealizarIntegracaoEnvio("IAPI0337-0923", EnumSistema.TipoProcessoEnum.ImportacaoAerea, EnumSistema.TipoEnvioCCT.EnviarHouseXFZB);
+                    BLRealizarIntegracaoEnvio bLRealizarIntegracaoEnvioXFZB = new BLRealizarIntegracaoEnvio(arquivo[0], EnumSistema.TipoProcessoEnum.ImportacaoAerea, EnumSistema.TipoEnvioCCT.EnviarHouseXFZB);
                     bLRealizarIntegracaoEnvioXFZB.Integrar();
                     break;
                 case "1":
-                    BLRealizarIntegracaoEnvio bLRealizarIntegracaoEnvioMASTER = new BLRealizarIntegracaoEnvio("IAPI0337-0923", EnumSistema.TipoProcessoEnum.ImportacaoAerea, EnumSistema.TipoEnvioCCT.EnviarMaster);
+                    BLRealizarIntegracaoEnvio bLRealizarIntegracaoEnvioMASTER = new BLRealizarIntegracaoEnvio(arquivo[0], EnumSistema.TipoProcessoEnum.ImportacaoAerea, EnumSistema.TipoEnvioCCT.EnviarMaster);
                     bLRealizarIntegracaoEnvioMASTER.Integrar();
                     break;
                 case "2":

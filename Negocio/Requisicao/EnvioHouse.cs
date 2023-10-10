@@ -102,38 +102,45 @@ namespace GLB.CCT.Negocio.Requisicao
                 }
 
                 xmlDocument.LoadXml(xmlString);
+                var a = XDocument.Parse(xmlDocument.OuterXml);
                 XmlNodeList itemNodes = xmlDocument.SelectNodes("//iata:IncludedHouseConsignment", GetNamespaceManager(xmlDocument));
                 if (itemNodes.Count > 12)
                 { 
                     List<XmlNode> primeiroIncludedHouse = ObterProximoIncludedHouse(itemNodes, 0, tamanhoMaximo);
                     var primeiraIncludedHouse = GerarXML(primeiroIncludedHouse, xmlDocument);
-                    var doc = XDocument.Parse(primeiraIncludedHouse);
+                    var doc = XDocument.Parse(primeiraIncludedHouse.FormataCaratere());
                     doc.Declaration = null;
                     var document = GeraHeaderXFHL();
-                    var client = await comunicacao.RetornarClientDeEnvio(autenticar, primeiraIncludedHouse.Replace("Ã", "A"));
-                    var JeitinhoBrasileiro = GeraXML(document.ToString(), doc.ToString().Replace("<IncludedHouseConsignment xmlns=\"iata:datamodel:3\">", "").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A").Replace("<Lote>", "").Replace("</Lote>",""));
+                    var client = await comunicacao.RetornarClientDeEnvio(autenticar, primeiraIncludedHouse.Replace("<HouseManifest xmlns=\"iata:datamodel:3\" xmlns:ns2=\"iata:housemanifest:1\">", "<HouseManifest xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"iata:datamodel:3\">").Replace("<IncludedHouseConsignment xmlns=\"iata:datamodel:3\">", "").Replace("Ã", "A").FormataCaratere());
+                    var JeitinhoBrasileiro = doc.ToString().Replace("<IncludedHouseConsignment xmlns=\"iata:datamodel:3\">", "").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A").Replace("<Lote>", "").Replace("</Lote>","");
                     var xmlD = XDocument.Parse(JeitinhoBrasileiro);
-                    var stringContent = new StringContent(xmlString, Encoding.UTF8, "application/xml");
+                    var stringContent = new StringContent(JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
 
                     if (PostAsyncCCT(client, stringContent, autenticar, nReferencia).Result)
                     {
-                        int indice = tamanhoMaximo;
-
-                        while (indice < itemNodes.Count)
+                        int indice = tamanhoMaximo; int falta = 0;
+                        while (indice <= itemNodes.Count)
                         {
-                            List<XmlNode> loteAtual = ObterProximoIncludedHouse(itemNodes, indice, tamanhoMaximo);
-                            GerarXML(loteAtual, xmlDocument);
+                            List<XmlNode> loteAtual = ObterProximoIncludedHouse(itemNodes, indice, tamanhoMaximo, falta);
 
-
-                            doc = XDocument.Parse(primeiraIncludedHouse);
-                            doc.Declaration = null;
-                            document = GeraHeaderXFHL();
-                            client = await comunicacao.RetornarClientDeEnvio(autenticar, primeiraIncludedHouse.Replace("Ã", "A"));
-                            JeitinhoBrasileiro = GeraXML(document.ToString().Replace("/>", ">"), doc.ToString().Remove(0, 139).Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A"));
+                            var xmlSeguintes = GerarXML(loteAtual, xmlDocument);
+                            doc = null;
+                            doc = XDocument.Parse(xmlSeguintes);
+                            client = await comunicacao.RetornarClientDeEnvio(autenticar, xmlSeguintes.Replace("Ã", "A").Replace("Creation", "Update"));
+                            JeitinhoBrasileiro = doc.ToString().Replace("Creation", "Update").Replace(" <DefinedTradeContact>", "").Replace(" <DirectTelephoneCommunication />", "").Replace("</DefinedTradeContact>", "<DefinedTradeContact />").Replace("MasterConsignment", "ns2:MasterConsignment").Replace("BusinessHeaderDocument", "ns2:BusinessHeaderDocument").Replace("HouseManifest", "ns2:HouseManifest").Replace("MessageHeaderDocument", "ns2:MessageHeaderDocument").Replace("Ã", "A");
                             xmlD = XDocument.Parse(JeitinhoBrasileiro);
-                            stringContent = new StringContent(xmlString, Encoding.UTF8, "application/xml");
+                            stringContent = new StringContent(JeitinhoBrasileiro, Encoding.UTF8, "application/xml");
+
+                            await PostAsyncCCT(client, stringContent, autenticar, nReferencia);
+
                             indice += tamanhoMaximo;
+                            if (indice > itemNodes.Count)
+                            {
+                                falta = itemNodes.Count - (indice - tamanhoMaximo);
+                                indice = indice - tamanhoMaximo + falta;
+                            }
                         }
+                        Console.ReadKey();
                     }
                 }
                 else
@@ -160,6 +167,15 @@ namespace GLB.CCT.Negocio.Requisicao
                 XmlNode messageHeaderNode = xml.SelectSingleNode("//iata:MessageHeaderDocument", GetNamespaceManager(xml));
                 XmlNode businessHeaderNode = xml.SelectSingleNode("//iata:BusinessHeaderDocument", GetNamespaceManager(xml));
                 XmlNode MasterConsignmentNode = xml.SelectSingleNode("//iata:MasterConsignment", GetNamespaceManager(xml));
+
+
+
+                XmlNode includedTareGrossWeightMeasureNode = xml.SelectSingleNode("//iata:IncludedTareGrossWeightMeasure", GetNamespaceManager(xml));
+                XmlNode totalPieceQuantityNode = xml.SelectSingleNode("//iata:TotalPieceQuantity", GetNamespaceManager(xml));
+                XmlNode transportContractIdNode = xml.SelectSingleNode("//iata:TransportContractDocument", GetNamespaceManager(xml));
+                XmlNode originLocationIdNode = xml.SelectSingleNode("//iata:OriginLocation", GetNamespaceManager(xml));
+                XmlNode finalDestinationLocationIdNode = xml.SelectSingleNode("//iata:FinalDestinationLocation", GetNamespaceManager(xml));
+
                 if (messageHeaderNode != null && businessHeaderNode != null)
                 {
                     XmlElement loteElement = xmlLote.CreateElement("HouseManifest");
@@ -172,6 +188,21 @@ namespace GLB.CCT.Negocio.Requisicao
                     XmlNode clonedBusinessHeaderNode = xmlLote.ImportNode(businessHeaderNode, true);
                     loteElement.AppendChild(clonedBusinessHeaderNode);
 
+                    XmlNode clonedincludedTareGrossWeightMeasureNode = xmlLote.ImportNode(includedTareGrossWeightMeasureNode, true);
+                    loteElement.AppendChild(clonedincludedTareGrossWeightMeasureNode);
+
+                    XmlNode clonedtotalPieceQuantityNode = xmlLote.ImportNode(totalPieceQuantityNode, true);
+                    loteElement.AppendChild(clonedtotalPieceQuantityNode);
+
+                    XmlNode clonedtransportContractIdNode = xmlLote.ImportNode(transportContractIdNode, true);
+                    loteElement.AppendChild(clonedtransportContractIdNode);
+
+                    XmlNode clonedoriginLocationIdNode = xmlLote.ImportNode(originLocationIdNode, true);
+                    loteElement.AppendChild(clonedoriginLocationIdNode);
+
+                    XmlNode clonedfinalDestinationLocationIdNode = xmlLote.ImportNode(finalDestinationLocationIdNode, true);
+                    loteElement.AppendChild(clonedfinalDestinationLocationIdNode);
+
                     // Adicione os itens do lote como filhos do novo elemento raiz
                     foreach (var itemNode in IncludedHouse)
                     {
@@ -182,7 +213,7 @@ namespace GLB.CCT.Negocio.Requisicao
                     // Adicione o elemento raiz ao documento do lote
                     xmlLote.AppendChild(loteElement);
 
-                    return xmlLote.OuterXml;
+                    return xmlLote.OuterXml.Replace("TransportContractDocument xmlns=\"iata:datamodel:3\"", "TransportContractDocument").Replace("TotalPieceQuantity xmlns=\"iata:datamodel:3\"", "TotalPieceQuantity").Replace("<HouseManifest>", "<HouseManifest xmlns=\"iata:datamodel:3\" xmlns:ns2=\"iata:housemanifest:1\">").Replace("MessageHeaderDocument xmlns=\"iata:datamodel:3\"", "MessageHeaderDocument").Replace("FinalDestinationLocation xmlns=\"iata:datamodel:3\"", "FinalDestinationLocation").Replace("OriginLocation xmlns=\"iata:datamodel:3\"", "OriginLocation").Replace("IncludedTareGrossWeightMeasure unitCode=\"KGM\" xmlns=\"iata:datamodel:3\"", "IncludedTareGrossWeightMeasure unitCode=\"KGM\"").Replace("BusinessHeaderDocument xmlns=\"iata:datamodel:3\"", "BusinessHeaderDocument").Replace("IncludedHouseConsignment xmlns=\"iata:datamodel:3\"", "IncludedHouseConsignment").Replace("</BusinessHeaderDocument>", "  </BusinessHeaderDocument>\r\n  <MasterConsignment>").Replace("</HouseManifest>", "  </MasterConsignment>\r\n</HouseManifest>");
                 }
                 return "";
             }catch (Exception ex) { Console.WriteLine(ex.Message); return null; }
@@ -204,7 +235,7 @@ namespace GLB.CCT.Negocio.Requisicao
 
                 Console.WriteLine(result.Result);
                 Console.WriteLine("Aperte qualquer botão para sair da tela");
-                Console.ReadLine();
+
                 return true;
             }
             else
@@ -216,9 +247,10 @@ namespace GLB.CCT.Negocio.Requisicao
                 return false;
             }
         }
-        static List<XmlNode> ObterProximoIncludedHouse(XmlNodeList nodes, int startIndex, int tamanhoDoLote)
+        static List<XmlNode> ObterProximoIncludedHouse(XmlNodeList nodes, int startIndex, int tamanhoDoLote, int falta = 0)
         {
             List<XmlNode> lote = new List<XmlNode>();
+            startIndex = startIndex - falta;
             for (int i = startIndex; i < startIndex + tamanhoDoLote && i < nodes.Count; i++)
             {
                 lote.Add(nodes[i]);

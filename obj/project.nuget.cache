@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "w5dQ4M57Yje87hZum0jhPYiL6Lf9E/mN+RplyLF/bDwkIogNVKTdv5PrBcthSTO4a0ZarByuG6ebvICCPml8og==",
+  "dgSpecHash": "s3h/ZTwvsLi3j+Yo8qHarddhuOJUXzKxrB3Dlz+vJsf/IljaxmTIIy3u5RGUYLhea9sE3MZu5sl4e3Yuk8poZA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
+  "projectFilePath": "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\DEV-NATALI\\.nuget\\packages\\dapper\\2.0.123\\dapper.2.0.123.nupkg.sha512",
     "C:\\Users\\DEV-NATALI\\.nuget\\packages\\extended.wpf.toolkit\\4.5.0\\extended.wpf.toolkit.4.5.0.nupkg.sha512",

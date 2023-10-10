@@ -110,7 +110,7 @@ namespace GLB.CCT.Negocio.Requisicao
 
             client.DefaultRequestHeaders.Add("Authorization", arquivoAutenticado.SetToken);
             client.DefaultRequestHeaders.Add("X-CSRF-Token", arquivoAutenticado.CSRFToken);
-            client.DefaultRequestHeaders.Add("body", xml);
+            client.DefaultRequestHeaders.Add("body", xml.Replace("\r\n", ""));
             
             return client;
         }
@@ -124,7 +124,7 @@ namespace GLB.CCT.Negocio.Requisicao
             client.DefaultRequestHeaders.Add("X-CSRF-Token", arquivoAutenticado.CSRFToken);
             //client.DefaultRequestHeaders.Add("body", xml);
 
-            HttpResponseMessage a = await client.GetAsync("https://val.portalunico.siscomex.gov.br/ccta/api/ext/check/received-files/" + protocolo);
+            HttpResponseMessage a = await client.GetAsync("https://portalunico.siscomex.gov.br/ccta/api/ext/check/received-files/" + protocolo);
             var responseContent = a.Content.ReadAsStringAsync().Result;
             var xmlResponse = JObject.Parse(responseContent);
             return xmlResponse.ToString();

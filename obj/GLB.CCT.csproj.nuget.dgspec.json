@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj": {}
+    "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj": {}
   },
   "projects": {
-    "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj": {
+    "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
+        "projectUniqueName": "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
         "projectName": "GLB.CCT",
-        "projectPath": "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
+        "projectPath": "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\GLB.CCT.csproj",
         "packagesPath": "C:\\Users\\DEV-NATALI\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\DEV-NATALI\\Desktop\\GlobalCCT\\GLB.CCT\\obj\\",
+        "outputPath": "C:\\Users\\DEV-NATALI\\OneDrive\\Área de Trabalho\\GlobalCCT\\GLB.CCT\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
